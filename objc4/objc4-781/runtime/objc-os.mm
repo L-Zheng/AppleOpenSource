@@ -910,6 +910,7 @@ void _objc_atfork_child()
 * Called by libSystem BEFORE library initialization time
 **********************************************************************/
 
+// lbz 👇objc加载入口
 void _objc_init(void)
 {
     static bool initialized = false;
@@ -924,7 +925,14 @@ void _objc_init(void)
     exception_init();
     cache_init();
     _imp_implementationWithBlock_init();
-
+    
+    /** lbz 👇 类的load方法在category初始化之后运行，
+             因此可以在类的+load方法里面，调用category中声明的方法
+     */
+    /** lbz  👇objc image初始化工作
+        map_images : category加载
+        load_images： load方法加载
+     */
     _dyld_objc_notify_register(&map_images, load_images, unmap_image);
 
 #if __OBJC2__

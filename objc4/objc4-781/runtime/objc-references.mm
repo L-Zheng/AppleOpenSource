@@ -104,6 +104,14 @@ typedef DenseMap<DisguisedPtr<objc_object>, ObjectAssociationMap> AssociationsHa
 // class AssociationsManager manages a lock / hash table singleton pair.
 // Allocating an instance acquires the lock
 
+/** lbz 👇 AssociationsManager定义
+ AssociationsManager --> AssociationsHashMap
+ AssociationsHashMap：    @{
+                         object(p%):     AssociationsHashMap：@{
+                                                         @"key": @"value"
+                                                        }
+                     }
+ */
 class AssociationsManager {
     using Storage = ExplicitInitDenseMap<DisguisedPtr<objc_object>, ObjectAssociationMap>;
     static Storage _mapStorage;
@@ -155,6 +163,7 @@ _object_get_associative_reference(id object, const void *key)
     return association.autoreleaseReturnedValue();
 }
 
+// lbz 👇category关联属性对象 objc
 void
 _object_set_associative_reference(id object, const void *key, id value, uintptr_t policy)
 {

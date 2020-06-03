@@ -1324,6 +1324,7 @@ attachCategories(Class cls, const locstamped_category_t *cats_list, uint32_t cat
     for (uint32_t i = 0; i < cats_count; i++) {
         auto& entry = cats_list[i];
 
+        // lbz 👇获取某个category的方法列表
         method_list_t *mlist = entry.cat->methodsForMeta(isMeta);
         if (mlist) {
             if (mcount == ATTACH_BUFSIZ) {
@@ -1331,10 +1332,12 @@ attachCategories(Class cls, const locstamped_category_t *cats_list, uint32_t cat
                 rwe->methods.attachLists(mlists, mcount);
                 mcount = 0;
             }
+            // lbz 👇从最后一位开始插入元素
             mlists[ATTACH_BUFSIZ - ++mcount] = mlist;
             fromBundle |= entry.hi->isBundle();
         }
-
+        
+        // lbz 👇获取某个category的属性列表
         property_list_t *proplist =
             entry.cat->propertiesForMeta(isMeta, entry.hi);
         if (proplist) {
@@ -1344,7 +1347,8 @@ attachCategories(Class cls, const locstamped_category_t *cats_list, uint32_t cat
             }
             proplists[ATTACH_BUFSIZ - ++propcount] = proplist;
         }
-
+        
+        // lbz 👇获取某个category的协议列表
         protocol_list_t *protolist = entry.cat->protocolsForMeta(isMeta);
         if (protolist) {
             if (protocount == ATTACH_BUFSIZ) {
@@ -1357,7 +1361,9 @@ attachCategories(Class cls, const locstamped_category_t *cats_list, uint32_t cat
 
     if (mcount > 0) {
         prepareMethodLists(cls, mlists + ATTACH_BUFSIZ - mcount, mcount, NO, fromBundle);
+        // lbz 👇追加方法列表到原始类中去
         rwe->methods.attachLists(mlists + ATTACH_BUFSIZ - mcount, mcount);
+        // lbz 👇刷新缓存
         if (flags & ATTACH_EXISTING) flushCaches(cls);
     }
 
@@ -2995,6 +3001,7 @@ static void load_categories_nolock(header_info *hi) {
     auto processCatlist = [&](category_t * const *catlist) {
         for (unsigned i = 0; i < count; i++) {
             category_t *cat = catlist[i];
+            // lbz 👇获取category指向的原始类
             Class cls = remapClass(cat->cls);
             locstamped_category_t lc{cat, hi};
 
@@ -3024,6 +3031,7 @@ static void load_categories_nolock(header_info *hi) {
                     cat->protocols ||
                     (hasClassProperties && cat->_classProperties))
                 {
+                    // lbz 👇关联 原始类 和 category
                     objc::unattachedCategories.addForClass(lc, cls);
                 }
             } else {
@@ -3034,8 +3042,10 @@ static void load_categories_nolock(header_info *hi) {
                     ||  cat->instanceProperties)
                 {
                     if (cls->isRealized()) {
+                        // lbz 👇加载category
                         attachCategories(cls, &lc, 1, ATTACH_EXISTING);
                     } else {
+                        // lbz 👇关联 原始类 和 category
                         objc::unattachedCategories.addForClass(lc, cls);
                     }
                 }
@@ -3044,8 +3054,10 @@ static void load_categories_nolock(header_info *hi) {
                     ||  (hasClassProperties && cat->_classProperties))
                 {
                     if (cls->ISA()->isRealized()) {
+                        // lbz 👇加载category
                         attachCategories(cls->ISA(), &lc, 1, ATTACH_EXISTING | ATTACH_METACLASS);
                     } else {
+                        // lbz 👇关联 原始类 和 category
                         objc::unattachedCategories.addForClass(lc, cls->ISA());
                     }
                 }
@@ -3053,6 +3065,7 @@ static void load_categories_nolock(header_info *hi) {
         }
     };
 
+    // lbz 👇获取 __DATA段存储的_category_t数组
     processCatlist(_getObjc2CategoryList(hi, &count));
     processCatlist(_getObjc2CategoryList2(hi, &count));
 }
@@ -3611,6 +3624,8 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
     // attachment has been done. For categories present at startup,
     // discovery is deferred until the first load_images call after
     // the call to _dyld_objc_notify_register completes. rdar://problem/53119145
+    
+    /** lbz  👇objc加载category */
     if (didInitialAttachCategories) {
         for (EACH_HEADER) {
             load_categories_nolock(hi);
@@ -3622,7 +3637,8 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
     // Category discovery MUST BE Late to avoid potential races
     // when other threads call the new category code before
     // this thread finishes its fixups.
-
+    
+    /** lbz  👇objc加载load方法 */
     // +load handled by prepare_load_methods()
 
     // Realize non-lazy classes (for +load methods and static instances)
@@ -7677,6 +7693,7 @@ void *objc_destructInstance(id obj)
 
         // This order is important.
         if (cxx) object_cxxDestruct(obj);
+        /** lbz 👇 category关联对象的销毁 */
         if (assoc) _object_remove_assocations(obj);
         obj->clearDeallocating();
     }

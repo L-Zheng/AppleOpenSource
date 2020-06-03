@@ -894,12 +894,15 @@ class list_array_tt {
 
         if (hasArray()) {
             // many lists -> many lists
+            // lbz 👇添加之前原来类中方法的个数
             uint32_t oldCount = array()->count;
             uint32_t newCount = oldCount + addedCount;
             setArray((array_t *)realloc(array(), array_t::byteSize(newCount)));
             array()->count = newCount;
+            // lbz 👇将原来的方法列表向后移动 新加方法的个数
             memmove(array()->lists + addedCount, array()->lists, 
                     oldCount * sizeof(array()->lists[0]));
+            // lbz 👇将新加方法 拷贝到原来方法列表的前面
             memcpy(array()->lists, addedLists, 
                    addedCount * sizeof(array()->lists[0]));
         }

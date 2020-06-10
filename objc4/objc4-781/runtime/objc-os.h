@@ -732,7 +732,8 @@ class mutex_tt : nocopy_t {
         lockdebug_mutex_lock(this);
 
         // <rdar://problem/50384154>
-        uint32_t opts = OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION | OS_UNFAIR_LOCK_ADAPTIVE_SPIN;
+//        uint32_t opts = OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION | OS_UNFAIR_LOCK_ADAPTIVE_SPIN;
+        uint32_t opts = OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION;
         os_unfair_lock_lock_with_options_inline
             (&mLock, (os_unfair_lock_options_t)opts);
     }

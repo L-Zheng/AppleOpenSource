@@ -3548,7 +3548,10 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
     }
 
     ts.log("IMAGE TIMES: remap classes");
-
+    
+    /** lbz  👇修复旧的虚拟调度表，具体看fixupMessageRef函数定义
+        为什么这么做？  猜测：为hook函数留下入口
+     */
 #if SUPPORT_FIXUP
     // Fix up old objc_msgSend_fixup call sites
     for (EACH_HEADER) {
@@ -7541,6 +7544,7 @@ _class_createInstanceFromZone(Class cls, size_t extraBytes, void *zone,
     bool fast = cls->canAllocNonpointer();
     size_t size;
 
+    // lbz 👇获取需要开辟空间的大小
     size = cls->instanceSize(extraBytes);
     if (outAllocatedSize) *outAllocatedSize = size;
 
@@ -7548,6 +7552,7 @@ _class_createInstanceFromZone(Class cls, size_t extraBytes, void *zone,
     if (zone) {
         obj = (id)malloc_zone_calloc((malloc_zone_t *)zone, 1, size);
     } else {
+        // lbz 👇开辟内存空间
         obj = (id)calloc(1, size);
     }
     if (slowpath(!obj)) {
@@ -7558,6 +7563,7 @@ _class_createInstanceFromZone(Class cls, size_t extraBytes, void *zone,
     }
 
     if (!zone && fast) {
+        // lbz 👇将开辟的内存空间 关联给cls的isa指针
         obj->initInstanceIsa(cls, hasCxxDtor);
     } else {
         // Use raw pointer isa on the assumption that they might be
@@ -7982,7 +7988,8 @@ fixupMessageRef(message_ref_t *msg)
 {    
     msg->sel = sel_registerName((const char *)msg->sel);
 
-    if (msg->imp == &objc_msgSend_fixup) { 
+    if (msg->imp == &objc_msgSend_fixup) {
+         // lbz 👇 将alloc的函数实现替换为objc_alloc函数
         if (msg->sel == @selector(alloc)) {
             msg->imp = (IMP)&objc_alloc;
         } else if (msg->sel == @selector(allocWithZone:)) {

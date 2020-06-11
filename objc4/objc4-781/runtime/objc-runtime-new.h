@@ -1590,11 +1590,13 @@ struct objc_class : objc_object {
     // May be unaligned depending on class's ivars.
     uint32_t unalignedInstanceSize() const {
         ASSERT(isRealized());
+        // lbz 👇data数据段  ro为objc_class结构体内 ivars methodlists..d等内容
         return data()->ro()->instanceSize;
     }
 
     // Class's ivar size rounded up to a pointer-size boundary.
     uint32_t alignedInstanceSize() const {
+        // lbz 👇将没有字节对齐的size进行字节对齐
         return word_align(unalignedInstanceSize());
     }
 
@@ -1602,7 +1604,7 @@ struct objc_class : objc_object {
         if (fastpath(cache.hasFastInstanceSize(extraBytes))) {
             return cache.fastInstanceSize(extraBytes);
         }
-
+        // lbz 👇进行字节对齐
         size_t size = alignedInstanceSize() + extraBytes;
         // CF requires all objects be at least 16 bytes.
         if (size < 16) size = 16;

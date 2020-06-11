@@ -930,7 +930,7 @@ void _objc_init(void)
              因此可以在类的+load方法里面，调用category中声明的方法
      */
     /** lbz  👇objc image初始化工作
-        map_images : category加载
+        map_images : 修复旧的虚拟调度表fixupMessageRef、category加载
         load_images： load方法加载
      */
     _dyld_objc_notify_register(&map_images, load_images, unmap_image);

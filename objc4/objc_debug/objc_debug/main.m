@@ -11,11 +11,14 @@
 @interface Person : NSObject
 @end
 @implementation Person
++ (instancetype)allocWithZone:(struct _NSZone *)zone{
+    return [super allocWithZone:zone];
+}
 @end
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
-        Person *p = [[Person alloc] init];
+        Person *p = [Person alloc];
         // insert code here...
         NSLog(@"Hello, World!");
     }

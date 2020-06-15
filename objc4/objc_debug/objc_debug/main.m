@@ -16,12 +16,9 @@
     short c;  // 2字节
     NSString *aaa;
 }
-@property (nonatomic,copy) NSString *name;
+@property (nonatomic,copy) NSString *lbz_name;
 @end
 @implementation Person
-+ (instancetype)allocWithZone:(struct _NSZone *)zone{
-    return [super allocWithZone:zone];
-}
 @end
 
 @interface Student : Person
@@ -31,6 +28,8 @@
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
+        Person *p1 = [Person alloc];
+        
         Student *s1 = [Student alloc];
         // 获取类
         Class c1 = object_getClass(s1);

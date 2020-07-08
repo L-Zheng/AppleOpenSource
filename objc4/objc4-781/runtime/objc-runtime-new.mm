@@ -3628,7 +3628,7 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
     // discovery is deferred until the first load_images call after
     // the call to _dyld_objc_notify_register completes. rdar://problem/53119145
     
-    /** lbz  👇objc加载category */
+    /** lbz  👇这里不加载category 在prepare_load_methods 或者 realizeClassWithoutSwift里加载 */
     if (didInitialAttachCategories) {
         for (EACH_HEADER) {
             load_categories_nolock(hi);
@@ -3641,7 +3641,6 @@ void _read_images(header_info **hList, uint32_t hCount, int totalClasses, int un
     // when other threads call the new category code before
     // this thread finishes its fixups.
     
-    /** lbz  👇objc加载load方法 */
     // +load handled by prepare_load_methods()
 
     // Realize non-lazy classes (for +load methods and static instances)
